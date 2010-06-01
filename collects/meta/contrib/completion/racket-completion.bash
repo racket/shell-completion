@@ -14,7 +14,7 @@
 _smart_filedir()
 {
   COMPREPLY=()
-  _filedir '@(rkt|ss|scm|scrbl)'
+  _filedir '@(rkt|rktl|ss|scm|scrbl)'
   if [[ ${#COMPREPLY[@]} -eq 0 ]]; then
     _filedir
   fi
@@ -82,14 +82,26 @@ complete  -F _racket $filenames racket
 complete  -F _racket $filenames gracket
 complete  -F _racket $filenames gracket-text
 
-_rico_planet()
+_raco_planet()
 {
     local cur="${COMP_WORDS[COMP_CWORD]}"
-    local planetcmds=$( echo '' '--help' ;  for x in `rico planet --help 2>&1 | sed -n -e 's/^  \(.[^ ]*\).*/\1/p'` ; do echo ${x} ; done )
+    local planetcmds=$( echo '' '--help' ;  for x in `raco planet --help 2>&1 | sed -n -e 's/^  raco planet \(.[^ ]*\).*/\1/p'` ; do echo ${x} ; done )
     COMPREPLY=( $(compgen -W "${planetcmds}" -- ${cur}) )
 }
 
-_rico()
+raco_cmds=$()
+
+_raco_help()
+{
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    if [ ${#raco_cmds[@]} -eq 0 ]; then
+      # removing the empty string on the next line breaks things.  such as my brain.
+      raco_cmds=$( echo '' 'help' ;  for x in `racket -e '(begin (require raco/all-tools) (for ([(k v) (all-tools)]) (printf "~a\n" k)))'` ; do echo ${x} ; done )
+    fi
+    COMPREPLY=( $(compgen -W "${raco_cmds}" -- ${cur}) )
+}
+
+_raco()
 {
     COMPREPLY=()
     local cur="${COMP_WORDS[COMP_CWORD]}"
@@ -101,10 +113,10 @@ _rico()
 
     if [ $COMP_CWORD -eq 1 ]; then
       # removing the empty string on the next line breaks things.  such as my brain.
-      local cmds=$( echo '' '--help' ;  for x in `racket -e '(begin (require rico/all-tools) (for ([(k v) (all-tools)]) (printf "~a\n" k)))'` ; do echo ${x} ; done )
-      COMPREPLY=($(compgen -W "${cmds}" -- ${cur}))  
+      raco_cmds=$( echo '' 'help' ;  for x in `racket -e '(begin (require raco/all-tools) (for ([(k v) (all-tools)]) (printf "~a\n" k)))'` ; do echo ${x} ; done )
+      COMPREPLY=($(compgen -W "${raco_cmds}" -- ${cur}))  
     elif [ $COMP_CWORD -eq 2 ]; then
-      # Here we'll handle the main rico commands
+      # Here we'll handle the main raco commands
       local prev="${COMP_WORDS[1]}"
       case "${prev}" in
         make)
@@ -118,9 +130,10 @@ _rico()
           esac
           ;;
         planet)
-          _rico_planet
+          _raco_planet
           ;;
-        --help)
+        help)
+          _raco_help
           ;;
         *)
           _filedir
@@ -132,5 +145,6 @@ _rico()
     return 0
 }
 
-complete -F _rico rico
-complete -F _rico racket-tool
+complete -F _raco rico
+complete -F _raco racket-tool
+complete -F _raco raco
