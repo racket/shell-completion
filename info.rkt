@@ -8,3 +8,6 @@
 (define pkg-authors '(samth sstrickl stamourv))
 
 (define test-responsibles '(("racket-completion.zsh" eli)))
+
+(define license
+  '(Apache-2.0 OR MIT))
